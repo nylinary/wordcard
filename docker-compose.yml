@@ -13,7 +13,7 @@ services:
       - backend
 
   django-web:
-    image: registry.gitlab.com/nyLinary/wordcards:latest
+    image: registry.gitlab.com/nylinary/wordcards:latest
     container_name: django-docker
     restart: always
     volumes:
