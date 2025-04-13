@@ -86,10 +86,10 @@ deploy:
     - echo CSRF_TRUSTED_ORIGINS=${CSRF_TRUSTED_ORIGINS} >> .env
     - echo CORS_ALLOWED_ORIGINS=${CORS_ALLOWED_ORIGINS} >> .env
     - echo DOCKER_TLS_CERTDIR=${DOCKER_TLS_CERTDIR} >> .env
-    - scp -i ~/.ssh/deploy_key .env ${DEPLOY_USER}@${DEPLOY_SERVER}:/home/${DEPLOY_USER}/mnp_site/.env
+    - scp -i ~/.ssh/deploy_key .env ${DEPLOY_USER}@${DEPLOY_SERVER}:/home/${DEPLOY_USER}/wordcards/.env
 
     - echo "Deploying to production..."
-    - ssh -i ~/.ssh/deploy_key ${DEPLOY_USER}@${DEPLOY_SERVER} 'cd ~/mnp_site/ && docker compose pull && docker compose up -d'
+    - ssh -i ~/.ssh/deploy_key ${DEPLOY_USER}@${DEPLOY_SERVER} 'cd ~/wordcards/ && docker compose pull && docker compose up -d'
   only:
     - main
   environment:
