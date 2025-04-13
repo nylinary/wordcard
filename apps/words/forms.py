@@ -1,7 +1,5 @@
 from django import forms
 
-from .models import Word
-
 
 class WordForm(forms.Form):
     """Форма для ввода нового слова или фразы."""
