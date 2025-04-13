@@ -1,0 +1,98 @@
+stages:
+  - lint
+  - build
+  - deploy
+
+# ---------------- Lint Stage ----------------
+.base_ruff:
+  stage: lint
+  interruptible: true
+  image:
+    name: ghcr.io/astral-sh/ruff:0.9.6-alpine
+  before_script:
+    - cd $CI_PROJECT_DIR
+    - export PATH=$PATH:/home/gitlab-runner/.local/bin
+    - ruff --version
+
+ruff_check:
+  extends: .base_ruff
+  script:
+    - ruff check --output-format=gitlab > code-quality-report.json
+  artifacts:
+    when: always
+    reports:
+      codequality: $CI_PROJECT_DIR/code-quality-report.json
+  tags:
+    - lint
+
+ruff_format:
+  extends: .base_ruff
+  script:
+    - ruff format . --check
+  tags:
+    - lint
+
+# ---------------- Build Stage ----------------
+build:
+  stage: build
+  image: docker:latest
+  services:
+    - docker:18.09.7-dind
+  variables:
+    DOCKER_DRIVER: overlay2
+  before_script:
+    - echo ${CI_JOB_TOKEN} | docker login -u ${CI_REGISTRY_USER} --password-stdin ${CI_REGISTRY}
+  script:
+    - unset DOCKER_HOST
+    - echo "Building Docker image..."
+    - docker build --no-cache -t ${CI_REGISTRY_IMAGE}:latest .
+    - docker push ${CI_REGISTRY_IMAGE}:latest
+  after_script:
+    - docker logout
+  only:
+    - main
+  tags:
+    - docker
+
+# ---------------- Deploy Stage ----------------
+deploy:
+  stage: deploy
+  image: alpine:latest
+  before_script:
+    - apk add --no-cache openssh-client docker-cli docker-compose
+    - mkdir -p ~/.ssh
+    # Write the private key to a file and remove any carriage returns
+    - echo "${DEPLOY_SSH_PRIVATE_KEY}" | tr -d '\r' > ~/.ssh/deploy_key
+    - chmod 600 ~/.ssh/deploy_key
+    - ssh-keyscan -H ${DEPLOY_SERVER} >> ~/.ssh/known_hosts
+  script:
+    - echo "Logging into GitLab Container Registry on production..."
+    - ssh -i ~/.ssh/deploy_key ${DEPLOY_USER}@${DEPLOY_SERVER} "docker login -u ${CI_REGISTRY_USER} -p ${CI_REGISTRY_PASSWORD} ${CI_REGISTRY}"
+    
+    - echo "Generating .env file..."
+    - echo DJANGO_READ_DOT_ENV_FILE=${DJANGO_READ_DOT_ENV_FILE} >> .env
+    - echo DJANGO_DEBUG=${DJANGO_DEBUG} >> .env
+    - echo DJANGO_SECRET_KEY=${DJANGO_SECRET_KEY} >> .env
+    - echo DJANGO_SETTINGS_MODULE=${DJANGO_SETTINGS_MODULE} >> .env
+    - echo DB_NAME=${DB_NAME} >> .env
+    - echo DB_USER=${DB_USER} >> .env
+    - echo DB_PASSWORD=${DB_PASSWORD} >> .env
+    - echo DB_HOST=${DB_HOST} >> .env
+    - echo DB_PORT=${DB_PORT} >> .env
+    - echo POSTGRES_DB=${POSTGRES_DB} >> .env
+    - echo POSTGRES_USER=${POSTGRES_USER} >> .env
+    - echo POSTGRES_PASSWORD=${POSTGRES_PASSWORD} >> .env
+    - echo ALLOWED_HOSTS=${ALLOWED_HOSTS} >> .env
+    - echo CSRF_TRUSTED_ORIGINS=${CSRF_TRUSTED_ORIGINS} >> .env
+    - echo CORS_ALLOWED_ORIGINS=${CORS_ALLOWED_ORIGINS} >> .env
+    - echo DOCKER_TLS_CERTDIR=${DOCKER_TLS_CERTDIR} >> .env
+    - scp -i ~/.ssh/deploy_key .env ${DEPLOY_USER}@${DEPLOY_SERVER}:/home/${DEPLOY_USER}/mnp_site/.env
+
+    - echo "Deploying to production..."
+    - ssh -i ~/.ssh/deploy_key ${DEPLOY_USER}@${DEPLOY_SERVER} 'cd ~/mnp_site/ && docker compose pull && docker compose up -d'
+  only:
+    - main
+  environment:
+    name: production
+  tags:
+    - deploy
