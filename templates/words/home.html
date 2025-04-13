@@ -1,0 +1,140 @@
+{% extends 'core/base.html' %}
+{% block title %}Добавить новое слово{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header">
+                <h2 class="my-2">Добавить новое слово</h2>
+            </div>
+            <div class="card-body">
+                <form id="wordLookupForm" method="post">
+                    {% csrf_token %}
+                    <div class="mb-3">
+                        {{ form.word.label_tag }}
+                        {{ form.word }}
+                    </div>
+                    <button type="submit" class="btn btn-primary">Найти</button>
+                </form>
+                
+                <div id="wordResult" class="mt-4" style="display: none;">
+                    <div class="card word-card">
+                        <div class="card-header d-flex justify-content-between align-items-center">
+                            <h3 id="resultWord" class="mb-0"></h3>
+                            <button id="saveWordBtn" class="btn btn-outline-danger" title="Сохранить в мою коллекцию">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-heart" viewBox="0 0 16 16">
+                                    <path d="m8 2.748-.717-.737C5.6.281 2.514.878 1.4 3.053c-.523 1.023-.641 2.5.314 4.385.92 1.815 2.834 3.989 6.286 6.357 3.452-2.368 5.365-4.542 6.286-6.357.955-1.886.838-3.362.314-4.385C13.486.878 10.4.28 8.717 2.01L8 2.748zM8 15C-7.333 4.868 3.279-3.04 7.824 1.143c.06.055.119.112.176.171a3.12 3.12 0 0 1 .176-.17C12.72-3.042 23.333 4.867 8 15z"/>
+                                </svg>
+                            </button>
+                        </div>
+                        <div class="card-body">
+                            <div id="resultPartOfSpeech" class="text-muted mb-2"></div>
+                            <p id="resultDefinition" class="mb-4"></p>
+                            <h5>Примеры:</h5>
+                            <ul id="resultExamples"></ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const wordLookupForm = document.getElementById('wordLookupForm');
+    const wordResult = document.getElementById('wordResult');
+    const resultWord = document.getElementById('resultWord');
+    const resultPartOfSpeech = document.getElementById('resultPartOfSpeech');
+    const resultDefinition = document.getElementById('resultDefinition');
+    const resultExamples = document.getElementById('resultExamples');
+    const saveWordBtn = document.getElementById('saveWordBtn');
+    
+    let currentWordId = null;
+    
+    wordLookupForm.addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        const formData = new FormData(wordLookupForm);
+        
+        fetch('{% url "words:word_lookup" %}', {
+            method: 'POST',
+            body: formData,
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.error) {
+                alert(data.error);
+                return;
+            }
+            
+            resultWord.textContent = data.word;
+            resultPartOfSpeech.textContent = data.part_of_speech || '';
+            resultDefinition.textContent = data.definition;
+            
+            // Очищаем список примеров
+            resultExamples.innerHTML = '';
+            
+            // Добавляем новые примеры
+            if (data.examples && data.examples.length > 0) {
+                data.examples.forEach(example => {
+                    const li = document.createElement('li');
+                    li.textContent = example;
+                    resultExamples.appendChild(li);
+                });
+            } else {
+                const li = document.createElement('li');
+                li.textContent = 'Примеры не найдены';
+                resultExamples.appendChild(li);
+            }
+            
+            // Сохраняем ID слова
+            currentWordId = data.id;
+            
+            // Показываем результат
+            wordResult.style.display = 'block';
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Произошла ошибка при поиске слова.');
+        });
+    });
+    
+    saveWordBtn.addEventListener('click', function() {
+        if (!currentWordId) return;
+        
+        const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+        const formData = new FormData();
+        formData.append('word_id', currentWordId);
+        
+        fetch('{% url "words:save_word" %}', {
+            method: 'POST',
+            body: formData,
+            headers: {
+                'X-CSRFToken': csrfToken,
+                'X-Requested-With': 'XMLHttpRequest'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                saveWordBtn.classList.remove('btn-outline-danger');
+                saveWordBtn.classList.add('btn-danger');
+                saveWordBtn.disabled = true;
+                alert('Слово добавлено в вашу коллекцию!');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Произошла ошибка при сохранении слова.');
+        });
+    });
+});
+</script>
+{% endblock %}

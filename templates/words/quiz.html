@@ -1,0 +1,180 @@
+{% extends 'core/base.html' %}
+{% block title %}Тренировка{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <h1 class="mb-4">Тренировка слов</h1>
+        
+        {% if no_words %}
+            <div class="alert alert-warning">
+                <p>У вас пока нет сохраненных слов для тренировки.</p>
+                <a href="{% url 'words:home' %}" class="btn btn-primary mt-2">Добавить слова</a>
+            </div>
+        {% else %}
+            <div class="card quiz-card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h3 class="mb-0">Вопрос</h3>
+                    <span class="badge bg-info">Вопрос 1</span>
+                </div>
+                <div class="card-body">
+                    <div id="quizContainer">
+                        <h4 class="mb-4" id="quizQuestion">{{ quiz.question }}</h4>
+                        
+                        <form id="quizForm" method="post" action="{% url 'words:submit_quiz_answer' %}">
+                            {% csrf_token %}
+                            <input type="hidden" name="user_word_id" value="{{ user_word_id }}">
+                            <input type="hidden" name="correct_answer" value="{{ quiz.correct_answer }}">
+                            
+                            <div class="quiz-options mb-4">
+                                {% for option in quiz.options %}
+                                <div class="mb-3">
+                                    <button type="button" class="btn btn-outline-primary answer-option w-100 text-start p-3" 
+                                            data-answer="{{ option }}">
+                                        {{ option }}
+                                    </button>
+                                </div>
+                                {% endfor %}
+                            </div>
+                            
+                            <input type="hidden" name="selected_answer" id="selectedAnswer" value="">
+                        </form>
+                    </div>
+                    
+                    <div id="resultContainer" style="display: none;">
+                        <div id="correctResult" class="alert alert-success" style="display: none;">
+                            <h4 class="alert-heading">Правильно! 👍</h4>
+                            <p>Вы правильно ответили на вопрос.</p>
+                            <hr>
+                            <p class="mb-0">Слово: <strong>{{ word.word }}</strong></p>
+                            <p>{{ word.definition }}</p>
+                        </div>
+                        
+                        <div id="incorrectResult" class="alert alert-danger" style="display: none;">
+                            <h4 class="alert-heading">Неправильно 😕</h4>
+                            <p>Правильный ответ: <strong id="correctAnswerText">{{ quiz.correct_answer }}</strong></p>
+                            <hr>
+                            <p class="mb-0">Слово: <strong>{{ word.word }}</strong></p>
+                            <p>{{ word.definition }}</p>
+                        </div>
+                        
+                        <button id="nextQuestionBtn" class="btn btn-primary">Следующий вопрос</button>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="mt-4 text-center">
+                <div class="progress mb-3" style="height: 10px;">
+                    <div class="progress-bar" role="progressbar" style="width: 10%;" aria-valuenow="10" aria-valuemin="0" aria-valuemax="100"></div>
+                </div>
+                <a href="{% url 'words:my_words' %}" class="btn btn-outline-secondary">Завершить тренировку</a>
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const quizContainer = document.getElementById('quizContainer');
+    const resultContainer = document.getElementById('resultContainer');
+    const correctResult = document.getElementById('correctResult');
+    const incorrectResult = document.getElementById('incorrectResult');
+    const correctAnswerText = document.getElementById('correctAnswerText');
+    const nextQuestionBtn = document.getElementById('nextQuestionBtn');
+    const selectedAnswerInput = document.getElementById('selectedAnswer');
+    const quizForm = document.getElementById('quizForm');
+    
+    // Get all answer option buttons
+    const answerOptions = document.querySelectorAll('.answer-option');
+    
+    // Add click handler to each answer option
+    answerOptions.forEach(option => {
+        option.addEventListener('click', function(e) {
+            // Remove active class from all options
+            answerOptions.forEach(btn => btn.classList.remove('active'));
+            
+            // Add active class to selected option
+            this.classList.add('active');
+            
+            // Store selected answer in hidden input
+            selectedAnswerInput.value = this.getAttribute('data-answer');
+            
+            // Submit form after a short delay
+            setTimeout(() => {
+                handleAnswer();
+            }, 500);
+        });
+    });
+    
+    // Function to submit answer and handle result
+    function handleAnswer() {
+        const formData = new FormData(quizForm);
+        const selectedAnswer = selectedAnswerInput.value;
+        const correctAnswer = formData.get('correct_answer');
+        
+        // Disable all answer buttons
+        answerOptions.forEach(btn => {
+            btn.disabled = true;
+            
+            // Highlight correct answer
+            if (btn.getAttribute('data-answer') === correctAnswer) {
+                btn.classList.remove('btn-outline-primary');
+                btn.classList.add('btn-success');
+            }
+            
+            // If this was selected but incorrect
+            if (btn.getAttribute('data-answer') === selectedAnswer && selectedAnswer !== correctAnswer) {
+                btn.classList.remove('btn-outline-primary');
+                btn.classList.add('btn-danger');
+            }
+        });
+        
+        // Show result
+        quizContainer.style.display = 'none';
+        resultContainer.style.display = 'block';
+        
+        if (selectedAnswer === correctAnswer) {
+            correctResult.style.display = 'block';
+        } else {
+            incorrectResult.style.display = 'block';
+            correctAnswerText.textContent = correctAnswer;
+        }
+        
+        // Submit form to update database
+        fetch(quizForm.action, {
+            method: 'POST',
+            body: formData,
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest',
+                'X-CSRFToken': formData.get('csrfmiddlewaretoken')
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            // Store next URL for button
+            nextQuestionBtn.setAttribute('data-next-url', data.next_url);
+        })
+        .catch(error => {
+            console.error('Error:', error);
+        });
+    }
+    
+    // Next question button handler
+    if (nextQuestionBtn) {
+        nextQuestionBtn.addEventListener('click', function() {
+            window.location.href = this.getAttribute('data-next-url') || "{% url 'words:quiz' %}";
+        });
+    }
+    
+    // Update progress bar randomly (just visual feedback)
+    const progressBar = document.querySelector('.progress-bar');
+    if (progressBar) {
+        const randomProgress = Math.floor(Math.random() * 100) + 1;
+        progressBar.style.width = randomProgress + '%';
+        progressBar.setAttribute('aria-valuenow', randomProgress);
+    }
+});
+</script>
+{% endblock %}
