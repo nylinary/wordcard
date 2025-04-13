@@ -1,0 +1,50 @@
+services:
+  db:
+    image: postgres:17
+    container_name: db
+    restart: always
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    env_file:
+      - .env
+    networks:
+      - backend
+
+  django-web:
+    image: registry.gitlab.com/nyLinary/wordcards:latest
+    container_name: django-docker
+    restart: always
+    volumes:
+      - staticfiles_data:/app/staticfiles
+    depends_on:
+      - db
+    env_file:
+      - .env
+    networks:
+      - backend
+
+  frontend-proxy:
+    image: nginx:latest
+    container_name: frontend-proxy
+    restart: always
+    ports:
+      - "80:80"    # HTTP (for Certbot)
+      - "443:443"  # HTTPS
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+      - staticfiles_data:/static
+      - /etc/letsencrypt:/etc/letsencrypt:ro   # Certificates
+      - /var/www/certbot:/var/www/certbot:ro   # Certbot challenges
+    depends_on:
+      - django-web
+    networks:
+      - backend
+
+volumes:
+  postgres_data:
+  staticfiles_data:
+
+networks:
+  backend:
