@@ -17,7 +17,7 @@ RUN pip install --upgrade pip && \
 FROM python:3.13-alpine
 
 # Non-root user
-RUN addgroup -S wordgroup && adduser -S worduser -G wordgroup && mkdir -p /app && chown -R worduser:wordgroup /app
+RUN addgroup -S wordgroup && adduser -S wordcard_user -G wordgroup && mkdir -p /app && chown -R wordcard_user:wordgroup /app
 
 WORKDIR /app
 
@@ -26,7 +26,7 @@ COPY --from=builder /usr/local/lib/python3.13/site-packages/ /usr/local/lib/pyth
 COPY --from=builder /usr/local/bin/ /usr/local/bin/
 
 # Copy app code
-COPY --chown=worduser:wordgroup . .
+COPY --chown=wordcard_user:wordgroup . .
 
 # Make entrypoint executable
 RUN chmod +x /app/entrypoint.prod.sh
@@ -37,7 +37,7 @@ RUN mkdir -p /app/staticfiles
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1
 
-USER worduser
+USER wordcard_user
 
 EXPOSE 8000
 
