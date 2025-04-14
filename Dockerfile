@@ -28,13 +28,13 @@ WORKDIR /app
 # Copy app code
 COPY --chown=wordcard_user:wordgroup . .
 
+USER wordcard_user
+
 # Static dir
 RUN mkdir -p /app/staticfiles
 
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1
-
-USER wordcard_user
 
 EXPOSE 8000
 
