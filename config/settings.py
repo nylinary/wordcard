@@ -7,7 +7,7 @@ env = environ.Env()
 BASE_DIR = Path(__file__).resolve().parent.parent
 APPS_DIR = BASE_DIR / "apps"
 TEMPLATES_DIR = BASE_DIR / "templates"
-STATIC_DIR = BASE_DIR / "static"
+# STATIC_DIR = BASE_DIR / "static"
 MEDIA_DIR = BASE_DIR / "media"
 
 READ_DOT_ENV_FILE = env.bool("DJANGO_READ_DOT_ENV_FILE", default=True)
@@ -115,8 +115,8 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
-STATIC_URL = "/static/"
-STATICFILES_DIRS = [STATIC_DIR]
+# STATIC_URL = "/static/"
+# STATICFILES_DIRS = [STATIC_DIR]
 
 CSRF_TRUSTED_ORIGINS = env.list("CSRF_TRUSTED_ORIGINS", default=["https://127.0.0.1"])
 CORS_ALLOWED_ORIGINS = env.list("CORS_ALLOWED_ORIGINS", default=["https://127.0.0.1"])
