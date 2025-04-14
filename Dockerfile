@@ -19,17 +19,14 @@ FROM python:3.13-alpine
 # Non-root user
 RUN addgroup -S wordgroup && adduser -S wordcard_user -G wordgroup && mkdir -p /app && chown -R wordcard_user:wordgroup /app
 
-WORKDIR /app
-
 # Copy deps from builder
 COPY --from=builder /usr/local/lib/python3.13/site-packages/ /usr/local/lib/python3.13/site-packages/
 COPY --from=builder /usr/local/bin/ /usr/local/bin/
 
+WORKDIR /app
+
 # Copy app code
 COPY --chown=wordcard_user:wordgroup . .
-
-# Make entrypoint executable
-RUN chmod +x /app/entrypoint.prod.sh
 
 # Static dir
 RUN mkdir -p /app/staticfiles
@@ -40,5 +37,8 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
 USER wordcard_user
 
 EXPOSE 8000
+
+# Make entrypoint executable
+RUN chmod +x /app/entrypoint.prod.sh
 
 CMD ["/app/entrypoint.prod.sh"]
