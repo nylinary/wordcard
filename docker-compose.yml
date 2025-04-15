@@ -36,7 +36,7 @@ services:
       - ./nginx.conf:/etc/nginx/nginx.conf:ro
       - staticfiles_data:/static
       - /etc/letsencrypt:/etc/letsencrypt:ro   # Certificates
-      - /var/www/certbot:/var/www/certbot:ro   # Certbot challenges
+      - /var/www/certbot:/var/www/certbot  # Certbot challenges
     depends_on:
       - django-web
     networks:
