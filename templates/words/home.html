@@ -1,6 +1,44 @@
 {% extends 'core/base.html' %}
 {% block title %}Добавить новое слово{% endblock %}
 
+{% block extra_css %}
+<style>
+    /* Heart icon styles */
+    .heart-icon.filled {
+        fill: white !important;
+    }
+    .heart-icon.outlined {
+        fill: transparent !important;
+        stroke: currentColor;
+        stroke-width: 1;
+    }
+    /* Fix for touch devices */
+    .btn-outline-danger:active, 
+    .btn-outline-danger:focus {
+        background-color: transparent !important;
+        color: #dc3545 !important;
+    }
+    .btn-outline-danger:active .heart-icon.outlined, 
+    .btn-outline-danger:focus .heart-icon.outlined {
+        fill: transparent !important;
+    }
+    /* Additional fix for mobile */
+    .btn-danger .heart-icon {
+        fill: white !important;
+    }
+    .btn-outline-danger .heart-icon {
+        fill: transparent !important;
+    }
+    /* Prevent hover state on touch */
+    @media (hover: none) {
+        .btn-outline-danger:hover {
+            color: #dc3545;
+            background-color: transparent;
+        }
+    }
+</style>
+{% endblock %}
+
 {% block content %}
 <div class="row justify-content-center">
     <div class="col-md-8">
@@ -23,7 +61,7 @@
                         <div class="card-header d-flex justify-content-between align-items-center">
                             <h3 id="resultWord" class="mb-0"></h3>
                             <button id="saveWordBtn" class="btn btn-outline-danger" title="Сохранить в мою коллекцию">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-heart" viewBox="0 0 16 16">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi heart-icon outlined" viewBox="0 0 16 16">
                                     <path d="m8 2.748-.717-.737C5.6.281 2.514.878 1.4 3.053c-.523 1.023-.641 2.5.314 4.385.92 1.815 2.834 3.989 6.286 6.357 3.452-2.368 5.365-4.542 6.286-6.357.955-1.886.838-3.362.314-4.385C13.486.878 10.4.28 8.717 2.01L8 2.748zM8 15C-7.333 4.868 3.279-3.04 7.824 1.143c.06.055.119.112.176.171a3.12 3.12 0 0 1 .176-.17C12.72-3.042 23.333 4.867 8 15z"/>
                                 </svg>
                             </button>
@@ -53,22 +91,32 @@ document.addEventListener('DOMContentLoaded', function() {
     const resultDefinition = document.getElementById('resultDefinition');
     const resultExamples = document.getElementById('resultExamples');
     const saveWordBtn = document.getElementById('saveWordBtn');
+    const heartIcon = saveWordBtn.querySelector('.heart-icon');
     
     let currentWordId = null;
     let isWordSaved = false;
+    
+    // Initialize the heart icon with outlined class
+    heartIcon.classList.add('outlined');
     
     // Set the button state based on whether the word is saved
     function updateSaveButtonState(isSaved) {
         isWordSaved = isSaved;
         
         if (isSaved) {
+            // Saved state - filled heart
             saveWordBtn.classList.remove('btn-outline-danger');
             saveWordBtn.classList.add('btn-danger');
             saveWordBtn.title = 'Удалить из коллекции';
+            heartIcon.classList.add('filled');
+            heartIcon.classList.remove('outlined');
         } else {
+            // Unsaved state - outlined heart
             saveWordBtn.classList.remove('btn-danger');
             saveWordBtn.classList.add('btn-outline-danger');
             saveWordBtn.title = 'Сохранить в мою коллекцию';
+            heartIcon.classList.remove('filled');
+            heartIcon.classList.add('outlined');
         }
         
         saveWordBtn.disabled = false;
@@ -128,7 +176,7 @@ document.addEventListener('DOMContentLoaded', function() {
             wordResult.style.display = 'block';
             
             // Set the initial button state based on whether the word is saved
-            updateSaveButtonState(data.is_saved);
+            updateSaveButtonState(data.is_saved || false);
             
             // Clear input field after successful word lookup
             wordInput.value = '';
@@ -139,7 +187,15 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
     
-    saveWordBtn.addEventListener('click', function() {
+    // Use touchend for mobile devices to prevent hover state issues
+    const isTouchDevice = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+    const clickEvent = isTouchDevice ? 'touchend' : 'click';
+    
+    saveWordBtn.addEventListener(clickEvent, function(e) {
+        if (isTouchDevice) {
+            e.preventDefault(); // Prevent default touch behavior
+        }
+        
         if (!currentWordId) return;
         
         // Check if user is authenticated
@@ -189,6 +245,19 @@ document.addEventListener('DOMContentLoaded', function() {
             window.location.href = "{% url 'account_login' %}";
         {% endif %}
     });
+    
+    // Reset button state when clicked on mobile
+    if (isTouchDevice) {
+        saveWordBtn.addEventListener('touchstart', function(e) {
+            e.preventDefault();
+            // Add a visual feedback class that will be removed on touchend
+            this.classList.add('touch-active');
+        });
+        
+        saveWordBtn.addEventListener('touchcancel', function() {
+            this.classList.remove('touch-active');
+        });
+    }
 });
 </script>
 {% endblock %}
