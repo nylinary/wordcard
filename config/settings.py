@@ -137,6 +137,21 @@ DEEPSEEK_API_BASE_URL = env.str("DEEPSEEK_API_BASE_URL")
 
 GIGACHAT_AUTH_KEY = env.str("GIGACHAT_AUTH_KEY")
 
+# Logging
+LOGGING = {
+    "version": 1,
+    "disable_existing_loggers": False,
+    "handlers": {
+        "console": {
+            "class": "logging.StreamHandler",
+        },
+    },
+    "root": {
+        "handlers": ["console"],
+        "level": "ERROR",
+    },
+}
+
 # Allauth
 SOCIALACCOUNT_PROVIDERS = {
     "google": {
