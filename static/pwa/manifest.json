@@ -1,0 +1,22 @@
+{
+    "name": "Wordcard",
+    "short_name": "wordcard",
+    "start_url": "/",
+    "scope": "/",
+    "display": "standalone",
+    "background_color": "#0d6efd",
+    "theme_color": "#0d6efd",
+    "description": "Wordcard, Django and PWA",
+    "dir": "ltr",
+    "lang": "ru",
+    "orientation": "portrait-primary",
+    "icons": [{
+        "src": "/static/core/images/logo96.png",
+        "type": "image/png",
+        "sizes": "96x96"
+    }, {
+        "src": "/static/core/images/logo512.png",
+        "type": "image/png",
+        "sizes": "512x512"
+    }]
+}
