@@ -3,12 +3,13 @@
 
 {% block content %}
 <div class="row">
+    {% csrf_token %}
     <div class="col-12">
         <h1 class="mb-4">Моя коллекция слов</h1>
         
         {% if user_words %}
             <div class="d-flex justify-content-between mb-3">
-                <span>Всего слов: <strong>{{ user_words|length }}</strong></span>
+                <span>Всего слов: <strong id="words-count">{{ user_words|length }}</strong></span>
                 <div>
                     <button id="expandAllBtn" class="btn btn-sm btn-outline-primary me-2">Развернуть все</button>
                     <button id="collapseAllBtn" class="btn btn-sm btn-outline-secondary">Свернуть все</button>
@@ -17,7 +18,7 @@
             
             <div class="accordion" id="wordsAccordion">
                 {% for user_word in user_words %}
-                <div class="accordion-item word-card mb-3">
+                <div class="accordion-item word-card mb-3" id="word-card-{{ user_word.id }}">
                     <h2 class="accordion-header">
                         <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" 
                                 data-bs-target="#collapse{{ user_word.id }}" 
@@ -60,6 +61,11 @@
                                     {% endif %}
                                 </small>
                                 <div>
+                                    <button class="btn btn-sm btn-danger remove-word-btn" 
+                                            data-word-id="{{ user_word.word.uuid }}" 
+                                            data-user-word-id="{{ user_word.id }}">
+                                        Удалить
+                                    </button>
                                     <a href="{% url 'words:quiz' %}" class="btn btn-sm btn-outline-primary">Тренировать</a>
                                 </div>
                             </div>
@@ -69,7 +75,7 @@
                 {% endfor %}
             </div>
         {% else %}
-            <div class="alert alert-info">
+            <div class="alert alert-info" id="no-words-message" style="display: none;">
                 <p>У вас пока нет сохраненных слов.</p>
                 <a href="{% url 'words:home' %}" class="btn btn-primary mt-2">Добавить слова</a>
             </div>
@@ -83,7 +89,11 @@
 document.addEventListener('DOMContentLoaded', function() {
     const expandAllBtn = document.getElementById('expandAllBtn');
     const collapseAllBtn = document.getElementById('collapseAllBtn');
+    const wordsCount = document.getElementById('words-count');
+    const noWordsMessage = document.getElementById('no-words-message');
+    const wordsAccordion = document.getElementById('wordsAccordion');
     
+    // Handle accordion expand/collapse
     if (expandAllBtn && collapseAllBtn) {
         expandAllBtn.addEventListener('click', function() {
             document.querySelectorAll('.accordion-collapse').forEach(item => {
@@ -101,6 +111,56 @@ document.addEventListener('DOMContentLoaded', function() {
             });
         });
     }
+    
+    // Handle word removal
+    document.querySelectorAll('.remove-word-btn').forEach(button => {
+        button.addEventListener('click', function(e) {
+            e.preventDefault();
+            
+            if (!confirm('Вы уверены, что хотите удалить это слово из коллекции?')) {
+                return;
+            }
+            
+            const wordId = this.getAttribute('data-word-id');
+            const userWordId = this.getAttribute('data-user-word-id');
+            const card = document.getElementById(`word-card-${userWordId}`);
+            
+            const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+            const formData = new FormData();
+            formData.append('word_id', wordId);
+            
+            fetch('{% url "words:remove_word" %}', {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'X-CSRFToken': csrfToken,
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success && data.removed) {
+                    // Remove the card
+                    card.remove();
+                    
+                    // Update the count
+                    const currentCount = parseInt(wordsCount.textContent) - 1;
+                    wordsCount.textContent = currentCount;
+                    
+                    // Show no words message if there are no more words
+                    if (currentCount === 0 && noWordsMessage) {
+                        wordsAccordion.style.display = 'none';
+                        document.querySelector('.d-flex.justify-content-between.mb-3').style.display = 'none';
+                        noWordsMessage.style.display = 'block';
+                    }
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Произошла ошибка при удалении слова.');
+            });
+        });
+    });
 });
 </script>
 {% endblock %}

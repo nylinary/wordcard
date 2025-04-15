@@ -15,7 +15,6 @@ def home(request):
     return render(request, "words/home.html", {"form": form})
 
 
-@login_required
 def word_lookup(request):
     """API-представление для поиска определения слова."""
     if request.method == "POST":
@@ -44,8 +43,19 @@ def word_lookup(request):
                 }
             )
 
+        # Check if the word is saved by the current user
+        is_saved = False
+        if request.user.is_authenticated:
+            is_saved = UserWord.objects.filter(user=request.user, word=word).exists()
+
         return JsonResponse(
-            {"word": word.word, "definition": word.definition, "examples": word.examples, "id": str(word.uuid)}
+            {
+                "word": word.word,
+                "definition": word.definition,
+                "examples": word.examples,
+                "id": str(word.uuid),
+                "is_saved": is_saved,
+            }
         )
 
     return JsonResponse({"error": "Method not allowed"}, status=405)
@@ -121,3 +131,19 @@ def submit_quiz_answer(request):
     user_word.save()
 
     return JsonResponse({"correct": is_correct, "next_url": request.build_absolute_uri("/words/quiz/")})
+
+
+@login_required
+@require_POST
+def remove_word(request):
+    """Удаление слова из коллекции пользователя."""
+    word_id = request.POST.get("word_id")
+    word = get_object_or_404(Word, uuid=word_id)
+
+    # Try to find and delete the user's connection to this word
+    try:
+        user_word = UserWord.objects.get(user=request.user, word=word)
+        user_word.delete()
+        return JsonResponse({"success": True, "removed": True})
+    except UserWord.DoesNotExist:
+        return JsonResponse({"success": False, "error": "Word not found in your collection"}, status=404)

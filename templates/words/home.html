@@ -46,6 +46,7 @@
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     const wordLookupForm = document.getElementById('wordLookupForm');
+    const wordInput = document.querySelector('[name="word"]');
     const wordResult = document.getElementById('wordResult');
     const resultWord = document.getElementById('resultWord');
     const resultPartOfSpeech = document.getElementById('resultPartOfSpeech');
@@ -54,6 +55,24 @@ document.addEventListener('DOMContentLoaded', function() {
     const saveWordBtn = document.getElementById('saveWordBtn');
     
     let currentWordId = null;
+    let isWordSaved = false;
+    
+    // Set the button state based on whether the word is saved
+    function updateSaveButtonState(isSaved) {
+        isWordSaved = isSaved;
+        
+        if (isSaved) {
+            saveWordBtn.classList.remove('btn-outline-danger');
+            saveWordBtn.classList.add('btn-danger');
+            saveWordBtn.title = 'Удалить из коллекции';
+        } else {
+            saveWordBtn.classList.remove('btn-danger');
+            saveWordBtn.classList.add('btn-outline-danger');
+            saveWordBtn.title = 'Сохранить в мою коллекцию';
+        }
+        
+        saveWordBtn.disabled = false;
+    }
     
     wordLookupForm.addEventListener('submit', function(e) {
         e.preventDefault();
@@ -67,8 +86,16 @@ document.addEventListener('DOMContentLoaded', function() {
                 'X-Requested-With': 'XMLHttpRequest'
             }
         })
-        .then(response => response.json())
+        .then(response => {
+            if (response.redirected) {
+                window.location.href = response.url;
+                return;
+            }
+            return response.json();
+        })
         .then(data => {
+            if (!data) return; // Handle redirect case
+            
             if (data.error) {
                 alert(data.error);
                 return;
@@ -99,6 +126,12 @@ document.addEventListener('DOMContentLoaded', function() {
             
             // Показываем результат
             wordResult.style.display = 'block';
+            
+            // Set the initial button state based on whether the word is saved
+            updateSaveButtonState(data.is_saved);
+            
+            // Clear input field after successful word lookup
+            wordInput.value = '';
         })
         .catch(error => {
             console.error('Error:', error);
@@ -109,31 +142,52 @@ document.addEventListener('DOMContentLoaded', function() {
     saveWordBtn.addEventListener('click', function() {
         if (!currentWordId) return;
         
-        const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
-        const formData = new FormData();
-        formData.append('word_id', currentWordId);
-        
-        fetch('{% url "words:save_word" %}', {
-            method: 'POST',
-            body: formData,
-            headers: {
-                'X-CSRFToken': csrfToken,
-                'X-Requested-With': 'XMLHttpRequest'
-            }
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                saveWordBtn.classList.remove('btn-outline-danger');
-                saveWordBtn.classList.add('btn-danger');
-                saveWordBtn.disabled = true;
-                alert('Слово добавлено в вашу коллекцию!');
-            }
-        })
-        .catch(error => {
-            console.error('Error:', error);
-            alert('Произошла ошибка при сохранении слова.');
-        });
+        // Check if user is authenticated
+        {% if user.is_authenticated %}
+            const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+            const formData = new FormData();
+            formData.append('word_id', currentWordId);
+            
+            // Disable button right away to prevent double-clicks
+            saveWordBtn.disabled = true;
+            
+            // Choose endpoint based on current state
+            const endpoint = isWordSaved ? 
+                '{% url "words:remove_word" %}' : 
+                '{% url "words:save_word" %}';
+            
+            fetch(endpoint, {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'X-CSRFToken': csrfToken,
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            })
+            .then(response => {
+                if (response.redirected) {
+                    window.location.href = response.url;
+                    return;
+                }
+                return response.json();
+            })
+            .then(data => {
+                if (!data) return; // Handle redirect case
+                
+                if (data.success) {
+                    // Toggle the saved state
+                    updateSaveButtonState(!isWordSaved);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                // Re-enable the button if there's an error
+                saveWordBtn.disabled = false;
+            });
+        {% else %}
+            // Redirect directly to login page instead of showing modal
+            window.location.href = "{% url 'account_login' %}";
+        {% endif %}
     });
 });
 </script>
