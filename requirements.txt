@@ -10,3 +10,5 @@ requests==2.32.3
 openai==1.71.0
 gigachat==0.1.39.post1
 gunicorn==23.0.0
+django-allauth==65.7.0
+pyjwt==2.10.1
