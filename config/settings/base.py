@@ -4,7 +4,7 @@ import environ
 
 env = environ.Env()
 
-BASE_DIR = Path(__file__).resolve().parent.parent
+BASE_DIR = Path(__file__).resolve().parent.parent.parent
 APPS_DIR = BASE_DIR / "apps"
 TEMPLATES_DIR = BASE_DIR / "templates"
 STATIC_DIR = BASE_DIR / "static"
@@ -165,6 +165,8 @@ SOCIALACCOUNT_PROVIDERS = {
 }
 SITE_ID = 1
 ACCOUNT_EMAIL_VERIFICATION = "mandatory"
-ACCOUNT_EMAIL_REQUIRED = True
-ACCOUNT_AUTHENTICATION_METHOD = "email"
+ACCOUNT_SIGNUP_FIELDS = [
+    "email*",
+]
+ACCOUNT_LOGIN_METHODS = ("email",)
 SOCIALACCOUNT_LOGIN_ON_GET = True

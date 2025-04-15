@@ -1,10 +1,9 @@
 import abc
 import re
 
+from django.conf import settings
 from gigachat import GigaChat
 from openai import OpenAI
-
-from config import settings
 
 
 class BaseLinguisticModel(abc.ABC):
