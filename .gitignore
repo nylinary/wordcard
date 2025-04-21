@@ -272,7 +272,7 @@ Session.vim
 tags
 
 ### Project template
-project/media/
+/mediafiles/
 
 .pytest_cache/
 .ipython/
@@ -285,3 +285,4 @@ project/media/
 ### Local Images
 **/images/clothes/
 dumps/
+
