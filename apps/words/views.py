@@ -1,8 +1,12 @@
+from io import BytesIO
+
 from django.contrib.auth.decorators import login_required
+from django.core.files.base import ContentFile
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, render
 from django.utils import timezone
 from django.views.decorators.http import require_POST
+from gtts import gTTS
 
 from .forms import WordForm
 from .models import UserWord, Word
@@ -17,6 +21,14 @@ def home(request):
 
 def word_lookup(request):
     """API-представление для поиска определения слова."""
+
+    def _get_audio_from_text(word: Word) -> ContentFile:
+        tts = gTTS(text=word.word, lang="en")
+        audio_stream = BytesIO()
+        tts.write_to_fp(audio_stream)
+        audio_stream.seek(0)
+        return ContentFile(audio_stream.read(), name=f"{word.codename}.mp3")
+
     if request.method == "POST":
         word_text = request.POST.get("word", "").strip()
         if not word_text:
@@ -42,6 +54,8 @@ def word_lookup(request):
                     "examples": examples,
                 }
             )
+            word.audio_file = _get_audio_from_text(word)
+            word.save()
 
         # Check if the word is saved by the current user
         is_saved = False
@@ -55,6 +69,7 @@ def word_lookup(request):
                 "examples": word.examples,
                 "id": str(word.uuid),
                 "is_saved": is_saved,
+                "audio_file_url": word.audio_file.url if word.audio_file else "",
             }
         )
 
