@@ -4,10 +4,10 @@
 {% block extra_css %}
 <style>
     /* Heart icon styles */
-    .heart-icon.filled {
+    .heart-icon.filled, .bi-volume-up.filled {
         fill: white !important;
     }
-    .heart-icon.outlined {
+    .heart-icon.outlined, .bi-volume-up.outlined {
         fill: transparent !important;
         stroke: currentColor;
         stroke-width: 1;
@@ -18,15 +18,15 @@
         background-color: transparent !important;
         color: #dc3545 !important;
     }
-    .btn-outline-danger:active .heart-icon.outlined, 
+    .btn-outline-danger:active .heart-icon.outlined, .bi-volume-up.outlined,
     .btn-outline-danger:focus .heart-icon.outlined {
         fill: transparent !important;
     }
     /* Additional fix for mobile */
-    .btn-danger .heart-icon {
+    .btn-danger .heart-icon, .bi-volume-up {
         fill: white !important;
     }
-    .btn-outline-danger .heart-icon {
+    .btn-outline-danger .heart-icon, .bi-volume-up {
         fill: transparent !important;
     }
     /* Prevent hover state on touch */
@@ -60,11 +60,30 @@
                     <div class="card word-card">
                         <div class="card-header d-flex justify-content-between align-items-center">
                             <h3 id="resultWord" class="mb-0"></h3>
-                            <button id="saveWordBtn" class="btn btn-outline-danger" title="Сохранить в мою коллекцию">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi heart-icon outlined" viewBox="0 0 16 16">
-                                    <path d="m8 2.748-.717-.737C5.6.281 2.514.878 1.4 3.053c-.523 1.023-.641 2.5.314 4.385.92 1.815 2.834 3.989 6.286 6.357 3.452-2.368 5.365-4.542 6.286-6.357.955-1.886.838-3.362.314-4.385C13.486.878 10.4.28 8.717 2.01L8 2.748zM8 15C-7.333 4.868 3.279-3.04 7.824 1.143c.06.055.119.112.176.171a3.12 3.12 0 0 1 .176-.17C12.72-3.042 23.333 4.867 8 15z"/>
-                                </svg>
-                            </button>
+                            <!-- Play audio button -->
+                            <div class="d-flex justify-content-between align-items-center"> 
+                                <button id="playAudioBtn" class="btn btn-outline-secondary me-2" title="Прослушать произношение">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="25" height="25" fill="currentColor" class="bi bi-volume-up outlined" viewBox="0 0 17 17">
+                                        <!-- Outer wave - shifted right -->
+                                        <path transform="translate(2,0)" d="M11.536 14.01A8.47 8.47 0 0 0 14.026 8a8.47 8.47 0 0 0-2.49-6.01l-.708.707A7.48 7.48 0 0 1 13.025 8c0 2.071-.84 3.946-2.197 5.303z"/>
+                                        
+                                        <!-- Middle wave - slightly shifted -->
+                                        <path transform="translate(1,0)" d="M10.121 12.596A6.48 6.48 0 0 0 12.025 8a6.48 6.48 0 0 0-1.904-4.596l-.707.707A5.48 5.48 0 0 1 11.025 8a5.48 5.48 0 0 1-1.61 3.89z"/>
+                                        
+                                        <!-- Inner wave - keep it centered -->
+                                        <path d="M10.025 8a4.5 4.5 0 0 1-1.318 3.182L8 10.475A3.5 3.5 0 0 0 9.025 8c0-.966-.392-1.841-1.025-2.475l.707-.707A4.5 4.5 0 0 1 10.025 8"/>
+                                        
+                                        <!-- Speaker box -->
+                                        <path d="M7 4a.5.5 0 0 0-.812-.39L3.825 5.5H1.5A.5.5 0 0 0 1 6v4a.5.5 0 0 0 .5.5h2.325l2.363 1.89A.5.5 0 0 0 7 12z"/>
+                                        <path d="M4.312 6.39 6 5.04v5.92L4.312 9.61A.5.5 0 0 0 4 9.5H2v-3h2a.5.5 0 0 0 .312-.11"/>
+                                      </svg>
+                                </button>
+                                <button id="saveWordBtn" class="btn btn-outline-danger" title="Сохранить в мою коллекцию">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi heart-icon outlined" viewBox="0 0 16 16">
+                                        <path d="m8 2.748-.717-.737C5.6.281 2.514.878 1.4 3.053c-.523 1.023-.641 2.5.314 4.385.92 1.815 2.834 3.989 6.286 6.357 3.452-2.368 5.365-4.542 6.286-6.357.955-1.886.838-3.362.314-4.385C13.486.878 10.4.28 8.717 2.01L8 2.748zM8 15C-7.333 4.868 3.279-3.04 7.824 1.143c.06.055.119.112.176.171a3.12 3.12 0 0 1 .176-.17C12.72-3.042 23.333 4.867 8 15z"/>
+                                    </svg>
+                                </button>
+                            </div>
                         </div>
                         <div class="card-body">
                             <div id="resultPartOfSpeech" class="text-muted mb-2"></div>
@@ -73,6 +92,7 @@
                             <ul id="resultExamples"></ul>
                         </div>
                     </div>
+                    <audio id="wordAudio" hidden></audio>
                 </div>
             </div>
         </div>
@@ -92,12 +112,16 @@ document.addEventListener('DOMContentLoaded', function() {
     const resultExamples = document.getElementById('resultExamples');
     const saveWordBtn = document.getElementById('saveWordBtn');
     const heartIcon = saveWordBtn.querySelector('.heart-icon');
+    const playAudioBtn = document.getElementById('playAudioBtn');
+    const volumeIcon = playAudioBtn.querySelector(".bi-volume-up");
+    const wordAudio = document.getElementById('wordAudio');
     
     let currentWordId = null;
     let isWordSaved = false;
     
     // Initialize the heart icon with outlined class
     heartIcon.classList.add('outlined');
+    volumeIcon.classList.add("outlined");
     
     // Set the button state based on whether the word is saved
     function updateSaveButtonState(isSaved) {
@@ -110,6 +134,8 @@ document.addEventListener('DOMContentLoaded', function() {
             saveWordBtn.title = 'Удалить из коллекции';
             heartIcon.classList.add('filled');
             heartIcon.classList.remove('outlined');
+            volumeIcon.classList.add("filled");
+            volumeIcon.classList.remove("outlined");
         } else {
             // Unsaved state - outlined heart
             saveWordBtn.classList.remove('btn-danger');
@@ -117,6 +143,8 @@ document.addEventListener('DOMContentLoaded', function() {
             saveWordBtn.title = 'Сохранить в мою коллекцию';
             heartIcon.classList.remove('filled');
             heartIcon.classList.add('outlined');
+            volumeIcon.classList.remove("filled");
+            volumeIcon.classList.add("outlined");
         }
         
         saveWordBtn.disabled = false;
@@ -180,6 +208,20 @@ document.addEventListener('DOMContentLoaded', function() {
             
             // Clear input field after successful word lookup
             wordInput.value = '';
+            if (data.audio_file_url) {
+                console.log(data.audio_file_url)
+                wordAudio.src = data.audio_file_url;
+            
+                playAudioBtn.disabled = false;
+                playAudioBtn.addEventListener('click', () => {
+                    wordAudio.play().catch(err => {
+                        console.error('Audio playback failed:', err);
+                    });
+                });
+            } else {
+                wordAudio.removeAttribute('src');
+                playAudioBtn.disabled = true;
+            }
         })
         .catch(error => {
             console.error('Error:', error);
