@@ -18,6 +18,7 @@ services:
     restart: always
     volumes:
       - staticfiles_data:/app/staticfiles
+      - ./mediafiles:/app/mediafiles
     depends_on:
       - db
     env_file:
