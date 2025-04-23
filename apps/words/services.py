@@ -5,6 +5,8 @@ from django.conf import settings
 from gigachat import GigaChat
 from openai import OpenAI
 
+from apps.words.const import Prompts
+
 
 class BaseLinguisticModel(abc.ABC):
     """Абстрактный класс для работы с различными API для получения определений слов."""
@@ -34,24 +36,14 @@ class DeepSeekLinguisticModel(BaseLinguisticModel):
         self.client = OpenAI(base_url=self.base_url, api_key=self.api_key)
 
     def get_word_definition(self, word: str) -> dict:
-        prompt = f"""
-            You are an assistant helping English learners. 
-            Define the word: '{word}' in clear English.
-            Do not include any formatting, titles, or markdown. Return plain text only.
-            Avoid any extra phrases, introductions, or conclusions. Just the definition.
-            """
+        prompt = Prompts.WORD_DEFINITION.value.format(word=word)
         completion = self.client.chat.completions.create(
             extra_body={}, model="deepseek/deepseek-r1:free", messages=[{"role": "user", "content": prompt}]
         )
         return {"word": word, "part_of_speech": "", "definition": completion.choices[0].message.content}
 
     def get_word_examples(self, word: str) -> list:
-        prompt = f"""
-            You are an assistant helping English learners. 
-            Give 2-3 examples of how the word '{word}' is used in real sentences.
-            Do not include any formatting, titles, or markdown. Return plain text only.
-            Avoid extra text like 'Here are examples' — just return the sentences.
-            """
+        prompt = Prompts.WORD_EXAMPLES.value.format(word=word)
         completion = self.client.chat.completions.create(
             extra_body={}, model="deepseek/deepseek-r1:free", messages=[{"role": "user", "content": prompt}]
         )
@@ -76,42 +68,17 @@ class GigaChatModel(BaseLinguisticModel):
         self.giga = GigaChat(credentials=settings.GIGACHAT_AUTH_KEY, verify_ssl_certs=False)
 
     def get_word_definition(self, word: str) -> dict:
-        prompt = f"""
-        You are an assistant helping English learners.
-        Define the word or phrase: '{word}' in clear and simple English.
-        Return plain text only. Do not include any explanations, examples, markdown, numbering, or titles.
-        Just return the definition as one plain paragraph.
-        """
+        prompt = Prompts.WORD_DEFINITION.value.format(word=word)
         response = self.giga.chat(prompt)
         return {"word": word, "part_of_speech": "", "definition": response.choices[0].message.content.strip()}
 
     def get_word_examples(self, word: str) -> list:
-        prompt = f"""
-        You are an assistant helping English learners.
-        Return exactly 2 example sentences showing how the word or phrase '{word}' is used.
-        Do not explain them. Do not include markdown or extra text.
-        Just return the two sentences, each on its own line.
-        Example format:
-        I need to get over my fear of heights before I can go skydiving.
-        She's trying to get over her ex-boyfriend.
-        """
+        prompt = Prompts.WORD_EXAMPLES.value.format(word=word)
         response = self.giga.chat(prompt)
         return [line.strip() for line in response.choices[0].message.content.strip().split("\n") if line.strip()]
 
     def generate_quiz_options(self, word: str) -> dict:
-        prompt = f"""
-        Create a multiple choice quiz question for the word '{word}'.
-        Return in the following format:
-        Question: What does the word '{word}' mean?
-        Options:
-        - option A
-        - option B
-        - option C
-        - option D
-        Correct Answer: option A
-
-        Do not include any explanations or formatting like markdown.
-        """
+        prompt = Prompts.WORD_QUIZ.value.format(word=word)
         response = self.giga.chat(prompt)
         content = response.choices[0].message.content.strip()
 
