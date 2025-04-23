@@ -134,8 +134,6 @@ document.addEventListener('DOMContentLoaded', function() {
             saveWordBtn.title = 'Удалить из коллекции';
             heartIcon.classList.add('filled');
             heartIcon.classList.remove('outlined');
-            volumeIcon.classList.add("filled");
-            volumeIcon.classList.remove("outlined");
         } else {
             // Unsaved state - outlined heart
             saveWordBtn.classList.remove('btn-danger');
@@ -143,8 +141,6 @@ document.addEventListener('DOMContentLoaded', function() {
             saveWordBtn.title = 'Сохранить в мою коллекцию';
             heartIcon.classList.remove('filled');
             heartIcon.classList.add('outlined');
-            volumeIcon.classList.remove("filled");
-            volumeIcon.classList.add("outlined");
         }
         
         saveWordBtn.disabled = false;
