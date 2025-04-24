@@ -129,6 +129,10 @@ body {
     color: var(--brand-purple);
     background: var(--brand-yellow);
 }
+
+.accordion-button:focus {
+    box-shadow: none;
+}
 .alert {
     border-radius: 14px;
     font-family: var(--brand-font);
