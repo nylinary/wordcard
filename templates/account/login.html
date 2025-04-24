@@ -2,11 +2,11 @@
 {% load socialaccount %}
 
 {% block content %}
-<div style="height:100vh; display:flex; align-items:center; justify-content:center;">
-  <div style="background-color:#ffffff; border-radius:8px; box-shadow:0 4px 8px rgba(0,0,0,0.1); padding:40px; text-align:center;">
-    <h2 style="color:#2b6cb0;">Sign In</h2>
-    <p style="color:#555;">Please sign in using Google.</p>
-    <a href="{% provider_login_url 'google' %}" style="display:inline-block; padding:10px 20px; background-color:#4285f4; color:white; border-radius:4px; text-decoration:none;">
+<div style="height:100vh; display:flex; align-items:center; justify-content:center; background:#DBEDEC;">
+  <div style="background-color:#fff; border-radius:18px; box-shadow:0 4px 24px rgba(0,0,0,0.12); padding:40px 32px; text-align:center; min-width:320px;">
+    <h2 style="color:#000; font-family:'TRAP','Inter',Arial,sans-serif; font-weight:700;">Sign In</h2>
+    <p style="color:#222; font-size:1.1rem;">Please sign in using Google.</p>
+    <a href="{% provider_login_url 'google' %}" style="display:inline-block; padding:12px 32px; background-color:#000; color:white; border-radius:8px; text-decoration:none; font-weight:600; font-size:1.1rem; margin-top:18px; transition:background 0.2s;">
       Sign in with Google
     </a>
   </div>
