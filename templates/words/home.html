@@ -1,21 +1,10 @@
 {% extends 'core/base.html' %}
+
+{% load static %}
 {% block title %}Добавить новое слово{% endblock %}
 
 {% block extra_css %}
-<style>
-    /* Remove most local styles, keep only icon tweaks if needed */
-    .heart-icon.filled {
-        fill: white !important;
-    }
-    .bi-volume-up.filled {
-        fill: gray !important;
-    }
-    .heart-icon.outlined, .bi-volume-up.outlined {
-        fill: transparent !important;
-        stroke: currentColor;
-        stroke-width: 1;
-    }
-</style>
+<link rel="stylesheet" href="{% static 'words/css/icons.css' %}">
 {% endblock %}
 
 {% block content %}
