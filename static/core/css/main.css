@@ -7,6 +7,7 @@
     --brand-card: #fff;
     --brand-muted: #E6E6F7;
     --brand-font: 'Anybody', 'Inter', Arial, sans-serif;
+    --xs-fs: 0.8rem;
 }
 html, body {
     height: 100%;
@@ -211,5 +212,9 @@ button, .btn, a, .form-control {
     }
     .navbar-brand {
         font-size: 1.3rem;
+    }
+
+    .base-btn {
+        font-size: var(--xs-fs);
     }
 }
