@@ -216,6 +216,11 @@ button, .btn, a, .form-control {
     box-shadow: none;
 }
 
+.hm-btn-Save:hover {
+    border-color: var(--brand-orange);
+    background-color: var(--brand-orange);
+}
+
 @media (max-width: 600px) {
     .container {
         max-width: 100%;
