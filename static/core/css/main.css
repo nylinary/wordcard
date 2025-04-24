@@ -185,6 +185,25 @@ button, .btn, a, .form-control {
     }
 }
 
+/* Fix: Remove persistent gray background on sound button after tap on mobile */
+#playAudioBtn,
+#playAudioBtn:active,
+#playAudioBtn:focus,
+#playAudioBtn:visited {
+    background-color: transparent !important;
+    box-shadow: none !important;
+    outline: none !important;
+}
+
+/* Also remove Bootstrap's default active/focus for outline-secondary */
+.btn-outline-secondary:active,
+.btn-outline-secondary:focus {
+    background-color: transparent !important;
+    color: var(--brand-black) !important;
+    box-shadow: none !important;
+    outline: none !important;
+}
+
 @media (max-width: 600px) {
     .container {
         max-width: 100%;
