@@ -43,7 +43,6 @@ body {
 }
 .navbar-toggler {
     border: 2px solid var(--brand-purple);
-    background: var(--brand-yellow);
     border-radius: 10px;
     padding: 6px 10px;
 }
@@ -203,6 +202,14 @@ button, .btn, a, .form-control {
     color: var(--brand-black) !important;
     box-shadow: none !important;
     outline: none !important;
+}
+
+.nav-btn:hover {
+    background-color: var(--brand-yellow);
+}
+
+.base-btn:focus {
+    box-shadow: none;
 }
 
 @media (max-width: 600px) {
