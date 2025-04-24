@@ -8,12 +8,12 @@
     gap: 0.5rem;
 }
 
-.remove-word-btn {
+.remove-word-btn:hover {
     background-color: var(--brand-orange);
     border-color: var(--brand-orange);
 }
 
-.remove-word-btn:hover {
+.remove-word-btn {
     background-color: red;
     border-color: red;
 }
