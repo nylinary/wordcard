@@ -38,11 +38,11 @@
                 <ul class="navbar-nav ms-auto">
                     {% if user.is_authenticated %}
                     <li class="nav-item">
-                        <a class="nav-link" href="{% url 'account_logout' %}">Выйти ({{ user.username }})</a>
+                        <a class="nav-link" href="{% url 'users:account_logout' %}">Выйти ({{ user.username }})</a>
                     </li>
                     {% else %}
                     <li class="nav-item">
-                        <a class="nav-link" href="{% url 'account_login' %}">Войти</a>
+                        <a class="nav-link" href="{% url 'users:account_login' %}">Войти</a>
                     </li>
                     {% endif %}
                 </ul>
