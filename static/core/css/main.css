@@ -163,6 +163,28 @@ h1, h2, h3, h4, h5 {
     background: var(--brand-yellow);
     border-radius: 8px;
 }
+
+/* Prevent blue highlight on tap for buttons and links */
+button, .btn, a, .form-control {
+    -webkit-tap-highlight-color: transparent;
+    outline: none;
+}
+
+/* Remove blue background on tap for Bootstrap buttons */
+.btn:active, button:active {
+    background-color: inherit !important;
+    color: inherit !important;
+    box-shadow: none !important;
+}
+
+/* Optional: Remove focus ring for buttons on mobile */
+@media (pointer: coarse) {
+    .btn:focus, button:focus {
+        outline: none !important;
+        box-shadow: none !important;
+    }
+}
+
 @media (max-width: 600px) {
     .container {
         max-width: 100%;
