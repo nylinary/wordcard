@@ -206,9 +206,12 @@ button, .btn, a, .form-control {
     outline: none !important;
 }
 
-.nav-btn:hover {
-    background-color: var(--brand-yellow);
-}
+@media (hover: hover) and (pointer: fine) {
+    .nav-btn:hover {
+        background-color: var(--brand-yellow);
+    }
+  }
+
 
 .base-btn:focus {
     box-shadow: none;
