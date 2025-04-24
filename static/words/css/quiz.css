@@ -1,0 +1,13 @@
+/* Custom: keep selected quiz option purple after hover */
+.answer-option.active,
+.answer-option.active:hover,
+.answer-option.active:focus {
+    background: #A66FFF !important;
+    color: #fff !important;
+    border-color: #A66FFF !important;
+}
+
+
+.qz-btn:hover {
+    background-color: #A66FFF22;
+}

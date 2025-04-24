@@ -2,6 +2,10 @@
 {% load static %}
 {% block title %}Тренировка{% endblock %}
 
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'words/css/quiz.css' %}">
+{% endblock %}
+
 {% block content %}
 <div class="row justify-content-center">
     <div class="col-md-8">
@@ -14,10 +18,6 @@
             </div>
         {% else %}
             <div class="card quiz-card">
-                <div class="card-header d-flex justify-content-between align-items-center">
-                    <h3 class="mb-0">Вопрос</h3>
-                    <span class="badge bg-info">Вопрос 1</span>
-                </div>
                 <div class="card-body">
                     <div id="quizContainer">
                         <h4 class="mb-4" id="quizQuestion">{{ quiz.question }}</h4>
@@ -30,7 +30,7 @@
                             <div class="quiz-options mb-4">
                                 {% for option in quiz.options %}
                                 <div class="mb-3">
-                                    <button type="button" class="btn btn-outline-primary answer-option w-100 text-start p-3" 
+                                    <button type="button" class="btn qz-btn btn-outline-primary answer-option w-100 text-start p-3" 
                                             data-answer="{{ option }}">
                                         {{ option }}
                                     </button>

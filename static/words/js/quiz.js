@@ -24,11 +24,19 @@ document.addEventListener('DOMContentLoaded', function() {
         option.style.transition = "background 0.2s, color 0.2s, box-shadow 0.2s";
         option.style.boxShadow = "0 2px 8px rgba(166,111,255,0.06)";
         option.addEventListener('mouseenter', function() {
-            this.style.background = "#A66FFF22";
+            if (!this.classList.contains('active')) {
+                this.style.background = "#A66FFF22";
+                this.style.color = "#202020";
+            }
         });
         option.addEventListener('mouseleave', function() {
             if (!this.classList.contains('active')) {
-                this.style.background = "#fff";
+                this.style.background = "var(--brand-purple)";
+                this.style.color = "#ffffff";
+            } else {
+                // Ensure active stays purple after hover
+                this.style.background = "var(--brand-purple)";
+                this.style.color = "#ffffff";
             }
         });
         option.addEventListener('click', function(e) {
