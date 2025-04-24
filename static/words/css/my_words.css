@@ -1,1 +1,9 @@
-/* Add custom styles for my_words.html here if needed */
+.mw-badge {
+    background-color: var(--brand-yellow);
+    color: var(--brand-purple);
+}
+
+.mw-div-ButtonsWrapper {
+    justify-content: right;
+    gap: 0.5rem;
+}

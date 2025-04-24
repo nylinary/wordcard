@@ -30,12 +30,8 @@
                                 aria-expanded="false" aria-controls="collapse{{ user_word.id }}">
                             <div class="d-flex justify-content-between w-100 align-items-center me-3">
                                 <strong>{{ user_word.word.word }}</strong>
-                                <span class="badge {% if user_word.familiarity_score > 5 %}bg-danger{% elif user_word.familiarity_score > 2 %}bg-warning{% else %}bg-success{% endif %} ms-2">
-                                    {% if user_word.familiarity_score == 0 %}
-                                        Изучено
-                                    {% else %}
-                                        Изучается ({{ user_word.familiarity_score }})
-                                    {% endif %}
+                                <span class="badge mw-badge ms-2">
+                                    {{ user_word.familiarity_score }}
                                 </span>
                             </div>
                         </button>
@@ -57,22 +53,13 @@
                             </ul>
                             {% endif %}
                             
-                            <div class="d-flex justify-content-between mt-3">
-                                <small class="text-muted">
-                                    {% if user_word.last_reviewed %}
-                                    Последнее повторение: {{ user_word.last_reviewed|date:"d.m.Y H:i" }}
-                                    {% else %}
-                                    Еще не повторялось
-                                    {% endif %}
-                                </small>
-                                <div>
-                                    <button class="btn btn-sm btn-danger remove-word-btn" 
-                                            data-word-id="{{ user_word.word.uuid }}" 
-                                            data-user-word-id="{{ user_word.id }}">
-                                        Удалить
-                                    </button>
-                                    <a href="{% url 'words:quiz' %}" class="btn btn-sm btn-outline-primary">Тренировать</a>
-                                </div>
+                            <div class="mw-div-ButtonsWrapper d-flex mt-3">
+                                <button class="base-btn btn btn-sm btn-outline-primary remove-word-btn" 
+                                        data-word-id="{{ user_word.word.uuid }}" 
+                                        data-user-word-id="{{ user_word.id }}">
+                                    Удалить
+                                </button>
+                                <a href="{% url 'words:quiz' %}" class="base-btn btn btn-sm btn-outline-primary">Тренировать</a>
                             </div>
                         </div>
                     </div>
