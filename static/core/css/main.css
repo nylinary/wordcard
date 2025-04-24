@@ -219,6 +219,7 @@ button, .btn, a, .form-control {
     background-color: var(--brand-orange);
 }
 
+
 @media (max-width: 600px) {
     .container {
         max-width: 100%;
@@ -232,3 +233,19 @@ button, .btn, a, .form-control {
         font-size: var(--xs-fs);
     }
 }
+
+@media (max-width: 400px) {
+    .container {
+        max-width: 100%;
+        padding: 0 8px;
+    }
+    .navbar-brand {
+        font-size: 1.1rem;
+    }
+
+    .base-btn {
+        font-size: 0.7rem;
+    }
+}
+
+
