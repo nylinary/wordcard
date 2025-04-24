@@ -80,19 +80,13 @@ document.addEventListener('DOMContentLoaded', function() {
         isWordSaved = isSaved;
         
         if (isSaved) {
-            // Saved state - filled heart
             saveWordBtn.classList.remove('btn-outline-danger');
             saveWordBtn.classList.add('btn-danger');
             saveWordBtn.title = 'Удалить из коллекции';
-            heartIcon.classList.add('filled');
-            heartIcon.classList.remove('outlined');
         } else {
-            // Unsaved state - outlined heart
             saveWordBtn.classList.remove('btn-danger');
             saveWordBtn.classList.add('btn-outline-danger');
             saveWordBtn.title = 'Сохранить в мою коллекцию';
-            heartIcon.classList.remove('filled');
-            heartIcon.classList.add('outlined');
         }
         
         saveWordBtn.disabled = false;
