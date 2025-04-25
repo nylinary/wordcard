@@ -1,4 +1,5 @@
 import abc
+import json
 import re
 
 from django.conf import settings
@@ -6,6 +7,7 @@ from gigachat import GigaChat
 from openai import OpenAI
 
 from apps.words.const import Prompts
+from apps.words.prompts import PromptBuilder
 
 
 class BaseLinguisticModel(abc.ABC):
@@ -66,11 +68,16 @@ class DeepSeekLinguisticModel(BaseLinguisticModel):
 class GigaChatModel(BaseLinguisticModel):
     def __init__(self):
         self.giga = GigaChat(credentials=settings.GIGACHAT_AUTH_KEY, verify_ssl_certs=False)
+        self.prompt_builder = PromptBuilder()
 
     def get_word_definition(self, word: str) -> dict:
-        prompt = Prompts.WORD_DEFINITION.value.format(word=word)
+        prompt = self.prompt_builder.get_word_definition(word)
         response = self.giga.chat(prompt)
-        return {"word": word, "part_of_speech": "", "definition": response.choices[0].message.content.strip()}
+
+        json_response = response.choices[0].message.content.strip().replace("'", '"')
+        dict_response = json.loads(json_response)
+
+        return {"word": word} | dict_response
 
     def get_word_examples(self, word: str) -> list:
         prompt = Prompts.WORD_EXAMPLES.value.format(word=word)

@@ -1,13 +1,22 @@
 from enum import Enum
 
 
+class ReturnFormat(dict, Enum):
+    WORD_DEFINITION = {"definition": "", "part_of_speech": ""}
+
+
+class ReturnFormatPrompt(str, Enum):
+    WORD_DEFINITION = f"""Return answer in JSON format. Here is format: {ReturnFormat.WORD_DEFINITION.value}."""
+
+
 class Prompts(str, Enum):
     WORD_DEFINITION = """
         You are an assistant helping English learners.
         Define the word or phrase: '{word}' in clear and simple English.
         Return plain text only. Do not include any explanations, examples, markdown, numbering, or titles.
-        Just return the definition as one plain paragraph.
+        Max length of the answer is 512 symbols.
         """
+
     WORD_EXAMPLES = """
         You are an assistant helping English learners.
         Return exactly 2 example sentences showing how the word or phrase '{word}' is used.
