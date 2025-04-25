@@ -21,6 +21,21 @@
     border-radius: 50%;
     animation: hm-spin 0.8s linear infinite;
 }
+
+.heart-icon.filled {
+    fill: white !important;
+}
+
+.bi-volume-up.filled {
+    fill: gray !important;
+}
+
+.heart-icon.outlined, .bi-volume-up.outlined {
+    fill: transparent !important;
+    stroke: currentColor;
+    stroke-width: 1;
+}
+
 @keyframes hm-spin {
     0% { transform: rotate(0deg);}
     100% { transform: rotate(360deg);}
