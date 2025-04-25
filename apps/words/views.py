@@ -50,7 +50,7 @@ def word_lookup(request):
                     "name": word_text,
                     "codename": word_text.lower().replace(" ", "_"),
                     "part_of_speech": definition.get("part_of_speech", ""),
-                    "definition": definition.get("definition", ""),
+                    "definition": definition.get("definition", "").capitalize(),
                     "examples": examples,
                 }
             )
