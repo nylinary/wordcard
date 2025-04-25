@@ -11,6 +11,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const playAudioBtn = document.getElementById('playAudioBtn');
     const volumeIcon = playAudioBtn.querySelector(".bi-volume-up");
     const wordAudio = document.getElementById('wordAudio');
+    const lookupSpinner = document.getElementById('lookupSpinner');
     
     let currentWordId = null;
     let isWordSaved = false;
@@ -94,7 +95,11 @@ document.addEventListener('DOMContentLoaded', function() {
     
     wordLookupForm.addEventListener('submit', function(e) {
         e.preventDefault();
-        
+
+        // Show spinner, hide result
+        if (lookupSpinner) lookupSpinner.style.display = 'flex';
+        if (wordResult) wordResult.style.display = 'none';
+
         const formData = new FormData(wordLookupForm);
         const lookupUrl = wordLookupForm.dataset.lookupUrl;
 
@@ -121,7 +126,10 @@ document.addEventListener('DOMContentLoaded', function() {
         })
         .then(data => {
             if (!data) return; // Handle redirect case
-            
+
+            // Hide spinner
+            if (lookupSpinner) lookupSpinner.style.display = 'none';
+
             if (data.error) {
                 alert(data.error);
                 return;
@@ -130,11 +138,7 @@ document.addEventListener('DOMContentLoaded', function() {
             resultWord.textContent = data.word;
             resultPartOfSpeech.textContent = data.part_of_speech || '';
             resultDefinition.textContent = data.definition;
-            
-            // Очищаем список примеров
             resultExamples.innerHTML = '';
-            
-            // Добавляем новые примеры
             if (data.examples && data.examples.length > 0) {
                 data.examples.forEach(example => {
                     const li = document.createElement('li');
@@ -146,17 +150,9 @@ document.addEventListener('DOMContentLoaded', function() {
                 li.textContent = 'Примеры не найдены';
                 resultExamples.appendChild(li);
             }
-            
-            // Сохраняем ID слова
             currentWordId = data.id;
-            
-            // Показываем результат
             wordResult.style.display = 'block';
-            
-            // Set the initial button state based on whether the word is saved
             updateSaveButtonState(data.is_saved || false);
-            
-            // Clear input field after successful word lookup
             wordInput.value = '';
             if (data.audio_file_url) {
                 wordAudio.src = data.audio_file_url;
@@ -167,6 +163,7 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         })
         .catch(error => {
+            if (lookupSpinner) lookupSpinner.style.display = 'none';
             console.error('Error:', error);
             alert('Произошла ошибка при поиске слова.');
         });
