@@ -18,7 +18,7 @@
                 <form id="wordLookupForm" method="post" data-lookup-url="{% url 'words:word_lookup' %}">
                     {% csrf_token %}
                     <div class="mb-3">
-                        {{ form.word.label_tag }}
+                        {% comment %} {{ form.word.label_tag }} {% endcomment %}
                         {{ form.word }}
                     </div>
                     <button type="submit" class="btn btn-primary">Найти</button>
