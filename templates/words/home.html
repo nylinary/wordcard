@@ -1,7 +1,7 @@
 {% extends 'core/base.html' %}
 
 {% load static %}
-{% block title %}Добавить новое слово{% endblock %}
+{% block title %}Искать слово{% endblock %}
 
 {% block extra_css %}
 <link rel="stylesheet" href="{% static 'words/css/home.css' %}">
@@ -12,7 +12,7 @@
     <div class="col-md-8">
         <div class="card">
             <div class="card-header">
-                <h2 class="my-2">Добавить новое слово</h2>
+                <h2 class="my-2">Искать слово</h2>
             </div>
             <div class="card-body">
                 <form id="wordLookupForm" method="post" data-lookup-url="{% url 'words:word_lookup' %}">
