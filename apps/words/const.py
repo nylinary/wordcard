@@ -26,6 +26,7 @@ class Prompts(str, Enum):
         Do not explain them. Do not include markdown or extra text. Sentences should be not too short.
         They must give user great example to understand usage of word or phrase in different contexts.
         The sentences MUST include the given word or phrase.
+        Give real world examples, from books, articles or real conversaations.
         """
     WORD_QUIZ = """
         Create a multiple choice quiz question for the word '{word}'.
