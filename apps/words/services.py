@@ -74,8 +74,18 @@ class GigaChatModel(BaseLinguisticModel):
         prompt = self.prompt_builder.get_word_definition(word)
         response = self.giga.chat(prompt)
 
-        json_response = response.choices[0].message.content.strip().replace("'", '"')
-        dict_response = json.loads(json_response)
+        response_content = response.choices[0].message.content.strip()
+
+        try:
+            dict_response = json.loads(response_content)
+        except json.JSONDecodeError:
+            response_content = response_content.replace("\\'", "'")
+            # Заменяем одинарные кавычки вокруг ключей
+            response_content = re.sub(r"([{,]\s*)'(.*?)'(?=\s*:)", r'\1"\2"', response_content)
+            # Заменяем одинарные кавычки вокруг значений
+            response_content = re.sub(r"(:\s*)'(.*?)'(?=[,}])", r'\1"\2"', response_content)
+
+            dict_response = json.loads(response_content)
 
         return {"word": word} | dict_response
 
