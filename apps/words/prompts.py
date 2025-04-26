@@ -12,3 +12,9 @@ class PromptBuilder(AbstractPromptBuilder):
         return_format = ReturnFormatPrompt.WORD_DEFINITION.value
 
         return main_prompt + return_format
+
+    def get_word_examples(self, word: str, count: int) -> str:
+        main_prompt = Prompts.WORD_EXAMPLES.value.format(word=word, count=count)
+        return_format = ReturnFormatPrompt.WORD_EXAMPLES.value
+
+        return main_prompt + return_format

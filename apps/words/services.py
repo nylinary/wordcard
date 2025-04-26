@@ -79,10 +79,18 @@ class GigaChatModel(BaseLinguisticModel):
 
         return {"word": word} | dict_response
 
-    def get_word_examples(self, word: str) -> list:
-        prompt = Prompts.WORD_EXAMPLES.value.format(word=word)
+    def get_word_examples(self, word: str, count: int = 3) -> list[str]:
+        prompt = self.prompt_builder.get_word_examples(word, count)
         response = self.giga.chat(prompt)
-        return [line.strip() for line in response.choices[0].message.content.strip().split("\n") if line.strip()]
+        response_content = response.choices[0].message.content.strip()
+
+        try:
+            list_response = json.loads(response_content)
+        except json.JSONDecodeError:
+            content_fixed = re.sub(r"(\[|,\s*)'(.*?)'(?=,|\])", r'\1"\2"', response_content)
+            list_response = json.loads(content_fixed)
+
+        return list_response
 
     def generate_quiz_options(self, word: str) -> dict:
         prompt = Prompts.WORD_QUIZ.value.format(word=word)
