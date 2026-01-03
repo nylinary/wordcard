@@ -11,7 +11,7 @@ class Word(GeneralModel):
     part_of_speech = models.CharField(max_length=50, blank=True, null=True)
     definition = models.TextField(blank=True, null=True)
     examples = models.JSONField(default=list, blank=True, null=True)
-    audio_file = models.FileField(upload_to="tts_audio", blank=True, null=True)
+    audio_file = models.FileField(upload_to="tts_audio/", blank=True, null=True)
 
     class Meta:
         verbose_name = "Word"

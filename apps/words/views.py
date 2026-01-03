@@ -20,7 +20,7 @@ def home(request):
 
 
 def word_lookup(request):
-    """API-представление для поиска определения слова."""
+    """API-представление для поиска определения слова и (при необходимости) генерации аудио."""
 
     def _get_audio_from_text(word: Word) -> ContentFile:
         tts = gTTS(text=word.word, lang="en")
@@ -29,51 +29,48 @@ def word_lookup(request):
         audio_stream.seek(0)
         return ContentFile(audio_stream.read(), name=f"{word.codename}.mp3")
 
-    if request.method == "POST":
-        word_text = request.POST.get("word", "").strip()
-        if not word_text:
-            return JsonResponse({"error": "Word is required"}, status=400)
+    if request.method != "POST":
+        return JsonResponse({"error": "Method not allowed"}, status=405)
 
-        linguistic_model = get_linguistic_model()
+    word_text = (request.POST.get("word") or "").strip()
+    if not word_text:
+        return JsonResponse({"error": "Word is required"}, status=400)
 
-        if Word.objects.filter(word=word_text).exists():
-            word = Word.objects.get(word=word_text)
-        else:
-            # Получаем определение и примеры
-            definition = linguistic_model.get_word_definition(word_text)
-            examples = linguistic_model.get_word_examples(word_text)
+    linguistic_model = get_linguistic_model()
 
-            # Сохраняем слово в базу данных, если его там еще нет
-            word = Word.objects.create(
-                **{
-                    "word": word_text,
-                    "name": word_text,
-                    "codename": word_text.lower().replace(" ", "_"),
-                    "part_of_speech": definition.get("part_of_speech", ""),
-                    "definition": definition.get("definition", "").capitalize(),
-                    "examples": examples,
-                }
-            )
-            word.audio_file = _get_audio_from_text(word)
-            word.save()
+    word = Word.objects.filter(word=word_text).first()
+    if word is None:
+        definition = linguistic_model.get_word_definition(word_text)
+        examples = linguistic_model.get_word_examples(word_text)
 
-        # Check if the word is saved by the current user
-        is_saved = False
-        if request.user.is_authenticated:
-            is_saved = UserWord.objects.filter(user=request.user, word=word).exists()
-
-        return JsonResponse(
-            {
-                "word": word.word,
-                "definition": word.definition,
-                "examples": word.examples,
-                "id": str(word.uuid),
-                "is_saved": is_saved,
-                "audio_file_url": word.audio_file.url if word.audio_file else "",
-            }
+        word = Word.objects.create(
+            word=word_text,
+            name=word_text,
+            codename=word_text.lower().replace(" ", "_"),
+            part_of_speech=definition.get("part_of_speech", "") or "",
+            definition=(definition.get("definition") or "").capitalize(),
+            examples=examples,
         )
 
-    return JsonResponse({"error": "Method not allowed"}, status=405)
+    # Ensure audio exists (works for both local/volume and S3 storage)
+    if not word.audio_file:
+        content = _get_audio_from_text(word)
+        word.audio_file.save(content.name, content, save=True)
+
+    is_saved = False
+    if request.user.is_authenticated:
+        is_saved = UserWord.objects.filter(user=request.user, word=word).exists()
+
+    return JsonResponse(
+        {
+            "word": word.word,
+            "definition": word.definition,
+            "examples": word.examples,
+            "id": str(word.uuid),
+            "is_saved": is_saved,
+            "audio_file_url": word.audio_file.url if word.audio_file else "",
+        }
+    )
 
 
 @login_required

@@ -63,6 +63,7 @@ THIRD_PARTY_APPS = [
     "allauth.socialaccount",
     "allauth.socialaccount.providers.google",
     "whitenoise.runserver_nostatic",
+    "storages",
 ]
 INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS
 
@@ -126,13 +127,43 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
-STATIC_URL = "/static/"
-STATICFILES_DIRS = [STATIC_DIR]
-STATIC_ROOT = BASE_DIR / "staticfiles"
-STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
 
-MEDIA_URL = "/media/"
-MEDIA_ROOT = BASE_DIR / "mediafiles"
+USE_S3 = env.bool("USE_S3", default=False)
+
+if USE_S3:
+    # aws settings
+    AWS_ACCESS_KEY_ID = env.str("AWS_ACCESS_KEY_ID")
+    AWS_SECRET_ACCESS_KEY = env.str("AWS_SECRET_ACCESS_KEY")
+    AWS_STORAGE_BUCKET_NAME = env.str("AWS_STORAGE_BUCKET_NAME")
+    AWS_DEFAULT_ACL = None
+    AWS_S3_CUSTOM_DOMAIN = f"{AWS_STORAGE_BUCKET_NAME}.s3.amazonaws.com"
+    AWS_S3_OBJECT_PARAMETERS = {"CacheControl": "max-age=86400"}
+
+    # s3 static settings
+    AWS_LOCATION = "static"
+    STATIC_URL = f"https://{AWS_S3_CUSTOM_DOMAIN}/{AWS_LOCATION}/"
+
+    PUBLIC_MEDIA_LOCATION = "media"
+    MEDIA_URL = f"https://{AWS_S3_CUSTOM_DOMAIN}/{PUBLIC_MEDIA_LOCATION}/"
+
+    STORAGES = {
+        "default": {"BACKEND": "apps.core.storage_backends.PublicMediaStorage"},
+        "staticfiles": {"BACKEND": "apps.core.storage_backends.StaticStorage"},
+    }
+
+else:
+    STORAGES = {
+        "default": {"BACKEND": "django.core.files.storage.FileSystemStorage"},
+        "staticfiles": {"BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage"},
+    }
+
+    STATIC_URL = "/static/"
+    STATIC_ROOT = BASE_DIR / "staticfiles"
+
+    MEDIA_URL = "/media/"
+    MEDIA_ROOT = BASE_DIR / "mediafiles"
+
+STATICFILES_DIRS = [STATIC_DIR]
 
 CSRF_TRUSTED_ORIGINS = env.list("CSRF_TRUSTED_ORIGINS", default=["https://127.0.0.1"])
 CORS_ALLOWED_ORIGINS = env.list("CORS_ALLOWED_ORIGINS", default=["https://127.0.0.1"])
