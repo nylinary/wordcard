@@ -14,3 +14,4 @@ django-allauth==65.7.0
 pyjwt==2.10.1
 cryptography==44.0.2
 gTTS==2.5.4
+whitenoise==6.11.0
